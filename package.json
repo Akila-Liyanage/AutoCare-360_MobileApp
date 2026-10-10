@@ -1,0 +1,31 @@
+{
+  "name": "autocare-360",
+  "version": "1.0.0",
+  "description": "AutoCare 360 - Universal Vehicle Maintenance Record System",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "backend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --prefix backend",
+    "build:backend": "npm run build --prefix backend",
+    "start:backend": "npm run start --prefix backend",
+    "start:mobile": "npm run start --prefix mobile",
+    "android": "npm run android --prefix mobile",
+    "ios": "npm run ios --prefix mobile",
+    "web": "npm run web --prefix mobile",
+    "install:all": "npm install --prefix backend && npm install --prefix mobile",
+    "lint:all": "npm run lint --prefix backend && npm run lint --prefix mobile"
+  },
+  "keywords": [
+    "autocare360",
+    "react-native",
+    "expo",
+    "express",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC"
+}
