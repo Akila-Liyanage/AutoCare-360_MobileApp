@@ -18,20 +18,6 @@ const getDefaultApiBaseUrl = (): string => {
 export const APP_CONFIG = {
   // AutoCare 360 Express REST API Base URL
   API_BASE_URL: getDefaultApiBaseUrl(),
-
-  // Keycloak Identity Provider (IAM Fallback)
-  KEYCLOAK_URL:
-    process.env.EXPO_PUBLIC_KEYCLOAK_URL ||
-    process.env.FRONTEND_KEYCLOAK_URL ||
-    'https://idp.sltdigitallab.lk',
-  KEYCLOAK_REALM:
-    process.env.EXPO_PUBLIC_KEYCLOAK_REALM ||
-    process.env.FRONTEND_KEYCLOAK_REALM ||
-    'ai-data-pipeline',
-  KEYCLOAK_CLIENT_ID:
-    process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID ||
-    process.env.FRONTEND_KEYCLOAK_CLIENT_ID ||
-    'frontend-client',
 };
 
 export default APP_CONFIG;

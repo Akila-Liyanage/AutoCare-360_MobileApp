@@ -1,6 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { keycloakService } from '../services/keycloak.service.js';
+import jwt from 'jsonwebtoken';
+import { ENV } from '../config/env.js';
 import { AuthenticatedRequest, AuthenticatedUser } from '../types/auth.types.js';
+import User from '../models/User.js';
 
 export const requireAuth = async (
   req: AuthenticatedRequest,
@@ -20,25 +22,28 @@ export const requireAuth = async (
   const token = authHeader.substring(7).trim();
 
   try {
-    const introspect = await keycloakService.introspectToken(token);
+    const decoded = jwt.verify(
+      token,
+      ENV.JWT_SECRET || 'autocare360_ayuni_dev_secret_2026_change_later'
+    ) as { id: string };
+    const dbUser = await User.findById(decoded.id);
+
+    if (!dbUser) {
+      res.status(401).json({ error: 'Unauthorized', message: 'User not found' });
+      return;
+    }
 
     const user: AuthenticatedUser = {
-      id: introspect.sub || '',
-      email: introspect.email || '',
-      username: introspect.preferred_username || introspect.username || introspect.email || '',
-      name:
-        introspect.name ||
-        `${introspect.given_name || ''} ${introspect.family_name || ''}`.trim() ||
-        introspect.preferred_username ||
-        '',
-      roles: introspect.realm_access?.roles || [],
-      raw: introspect,
+      id: dbUser._id.toString(),
+      email: dbUser.email,
+      username: dbUser.email,
+      name: dbUser.fullName,
+      roles: [dbUser.role],
     };
-
     req.user = user;
     next();
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Invalid or expired Keycloak token';
+    const message = err instanceof Error ? err.message : 'Invalid or expired token';
     res.status(401).json({
       error: 'Unauthorized',
       message,

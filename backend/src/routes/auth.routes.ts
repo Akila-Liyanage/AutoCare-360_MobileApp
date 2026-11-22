@@ -13,7 +13,7 @@ router.post('/signup', handleSignup);
 router.post('/api/auth/signup', handleSignup);
 router.post('/api/auth/register', handleSignup);
 
-// Authenticated user profile endpoint (supports both Bearer JWT and Keycloak Bearer token)
+// Authenticated user profile endpoint
 router.get('/api/auth/me', handleGetMe);
 
 // Diagnostic status endpoint

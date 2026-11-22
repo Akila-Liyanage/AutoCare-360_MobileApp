@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
-import { keycloakService } from '../services/keycloak.service.js';
 import { AuthenticatedRequest, RegisterUserInput } from '../types/auth.types.js';
 import { ENV } from '../config/env.js';
 import User from '../models/User.js';
@@ -89,46 +88,7 @@ export const handleLogin = async (req: AuthenticatedRequest, res: Response): Pro
       return;
     }
 
-    // 2. Fallback: Authenticate directly against Keycloak IAM if configured
-    try {
-      const tokenUrl = `${ENV.KEYCLOAK_URL}/realms/${ENV.KEYCLOAK_REALM}/protocol/openid-connect/token`;
-      const kcBody = new URLSearchParams({
-        client_id: ENV.KEYCLOAK_SERVICE_ACCOUNT_CLIENT,
-        client_secret: ENV.KEYCLOAK_SERVICE_ACCOUNT_SECRET,
-        grant_type: 'password',
-        username: loginIdentifier,
-        password,
-      });
-
-      const kcResponse = await fetch(tokenUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: kcBody.toString(),
-      });
-
-      if (kcResponse.ok) {
-        const tokenData = (await kcResponse.json()) as any;
-        res.status(200).json({
-          success: true,
-          message: 'Keycloak IAM authentication successful.',
-          data: {
-            user: {
-              email: loginIdentifier,
-              name: loginIdentifier,
-              role: requestedRole || 'owner',
-              roles: [requestedRole || 'owner'],
-            },
-            token: tokenData.access_token,
-            tokens: tokenData,
-          },
-        });
-        return;
-      }
-    } catch {
-      // Keycloak fallback error suppressed
-    }
-
-    // If neither succeeded
+    // Account not found in AutoCare 360 database
     res.status(401).json({
       success: false,
       error: 'InvalidCredentials',
@@ -199,17 +159,6 @@ export const handleSignup = async (req: AuthenticatedRequest, res: Response): Pr
     });
 
     const token = generateToken(newUser._id.toString(), newUser.role, newUser.email);
-
-    // Also attempt registering in Keycloak in background if available
-    keycloakService
-      .createUser({
-        email: resolvedEmail,
-        firstName: firstName?.trim() || resolvedName.split(' ')[0] || resolvedName,
-        lastName: lastName?.trim() || resolvedName.split(' ').slice(1).join(' ') || 'User',
-        password,
-        username: username?.trim() || resolvedEmail,
-      })
-      .catch(() => {});
 
     res.status(201).json({
       success: true,
@@ -284,25 +233,10 @@ export const handleGetMe = async (req: AuthenticatedRequest, res: Response): Pro
 };
 
 export const handleAuthStatus = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    await keycloakService.getSecureApiToken();
-    res.status(200).json({
-      status: 'Connected',
-      keycloak: {
-        serverUrl: ENV.KEYCLOAK_URL,
-        realm: ENV.KEYCLOAK_REALM,
-        serviceAccountClient: ENV.KEYCLOAK_SERVICE_ACCOUNT_CLIENT,
-      },
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Keycloak connection error';
-    res.status(200).json({
-      status: 'Degraded',
-      keycloak: 'Offline',
-      database: 'Connected',
-      error: message,
-      timestamp: new Date().toISOString(),
-    });
-  }
+  res.status(200).json({
+    status: 'Connected',
+    authentication: 'JWT',
+    database: 'Connected',
+    timestamp: new Date().toISOString(),
+  });
 };

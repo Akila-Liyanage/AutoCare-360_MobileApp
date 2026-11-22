@@ -28,7 +28,7 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// Authentication & Keycloak Routes
+// Authentication Routes
 app.use(authRoutes);
 
 // 404 Route Handler

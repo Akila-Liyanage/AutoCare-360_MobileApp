@@ -1,6 +1,6 @@
 export type AuthRole = 'owner' | 'garage' | 'admin';
 
-export interface KeycloakTokenResponse {
+export interface AuthTokens {
   access_token: string;
   expires_in: number;
   refresh_expires_in?: number;
@@ -49,7 +49,7 @@ export interface RegisterCredentials {
 export interface AuthContextType {
   user: AuthUser | null;
   token: string | null;
-  tokens: KeycloakTokenResponse | null;
+  tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;

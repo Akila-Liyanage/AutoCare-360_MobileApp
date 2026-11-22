@@ -1,41 +1,11 @@
 import { APP_CONFIG } from '../constants/config';
 import {
-  KeycloakTokenResponse,
+  AuthTokens,
   AuthUser,
   LoginCredentials,
   RegisterCredentials,
   AuthRole,
 } from '../types/auth.types';
-
-export const decodeJwtPayload = (token: string): any => {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-
-    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    while (base64.length % 4) {
-      base64 += '=';
-    }
-
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    let rawStr = '';
-    const str = base64.replace(/=+$/, '');
-    for (
-      let bc = 0, bs = 0, buffer: number, idx = 0;
-      (buffer = str.charCodeAt(idx++));
-      ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
-        ? (rawStr += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
-        : 0
-    ) {
-      buffer = chars.indexOf(String.fromCharCode(buffer));
-    }
-
-    return JSON.parse(decodeURIComponent(escape(rawStr)));
-  } catch (error) {
-    console.warn('Failed to parse JWT payload', error);
-    return null;
-  }
-};
 
 /**
  * 1. LOGIN: Send credentials to AutoCare 360 Backend REST API (/api/auth/login)
@@ -43,7 +13,7 @@ export const decodeJwtPayload = (token: string): any => {
  */
 export const login = async (
   credentials: LoginCredentials
-): Promise<{ token: string; tokens: KeycloakTokenResponse; user: AuthUser }> => {
+): Promise<{ token: string; tokens: AuthTokens; user: AuthUser }> => {
   const { username, password, role, selectedRole } = credentials;
   const requestedRole = (selectedRole || role || 'owner') as AuthRole;
   const normalizedEmail = username.trim().toLowerCase();
@@ -86,7 +56,7 @@ export const login = async (
         country: rawUser.country,
       };
 
-      const tokens: KeycloakTokenResponse = {
+      const tokens: AuthTokens = {
         access_token: token,
         expires_in: 604800,
         token_type: 'Bearer',
@@ -120,41 +90,6 @@ export const login = async (
       }
       networkError = err;
     }
-  }
-
-  // Fallback: If backend server is unreachable, attempt direct Keycloak IAM login
-  try {
-    const kcUrl = `${APP_CONFIG.KEYCLOAK_URL}/realms/${APP_CONFIG.KEYCLOAK_REALM}/protocol/openid-connect/token`;
-    const body = new URLSearchParams();
-    body.append('client_id', APP_CONFIG.KEYCLOAK_CLIENT_ID);
-    body.append('grant_type', 'password');
-    body.append('username', normalizedEmail);
-    body.append('password', password);
-
-    const kcResponse = await fetch(kcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
-    });
-
-    if (kcResponse.ok) {
-      const tokens: KeycloakTokenResponse = await kcResponse.json();
-      const payload = decodeJwtPayload(tokens.access_token) || {};
-      const user: AuthUser = {
-        id: payload.sub || 'kc-user',
-        _id: payload.sub || 'kc-user',
-        email: payload.email || normalizedEmail,
-        username: payload.preferred_username || normalizedEmail,
-        name: payload.name || `${payload.given_name || ''} ${payload.family_name || ''}`.trim() || normalizedEmail,
-        fullName: payload.name,
-        role: requestedRole,
-        roles: payload.realm_access?.roles || [requestedRole],
-        status: 'active',
-      };
-      return { token: tokens.access_token, tokens, user };
-    }
-  } catch {
-    // Keycloak fallback also failed
   }
 
   throw new Error(
