@@ -4,14 +4,20 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { RegisterScreen } from './src/screens/RegisterScreen';
+import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
+import { VerifyCodeScreen } from './src/screens/VerifyCodeScreen';
+import { ResetPasswordScreen } from './src/screens/ResetPasswordScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 
-type AuthScreen = 'login' | 'register';
+type AuthScreen = 'login' | 'register' | 'forgotPassword' | 'verifyCode' | 'resetPassword';
 
 function MainNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>('login');
   const [prefilledEmail, setPrefilledEmail] = useState<string>('');
+  const [recoveryIdentifier, setRecoveryIdentifier] = useState<string>('');
+  const [verificationCode, setVerificationCode] = useState<string>('');
+  const [, setResetPasswordValue] = useState<string>('');
 
   if (isLoading) {
     return (
@@ -42,10 +48,53 @@ function MainNavigator() {
     );
   }
 
+  if (currentScreen === 'forgotPassword') {
+    return (
+      <ForgotPasswordScreen
+        initialIdentifier={recoveryIdentifier}
+        onNavigateToLogin={() => setCurrentScreen('login')}
+        onContinue={(identifier) => {
+          if (identifier !== recoveryIdentifier) {
+            setVerificationCode('');
+          }
+          setRecoveryIdentifier(identifier);
+          setCurrentScreen('verifyCode');
+        }}
+      />
+    );
+  }
+
+  if (currentScreen === 'verifyCode') {
+    return (
+      <VerifyCodeScreen
+        identifier={recoveryIdentifier}
+        initialCode={verificationCode}
+        onBack={() => setCurrentScreen('forgotPassword')}
+        onContinue={(code) => {
+          setVerificationCode(code);
+          setCurrentScreen('resetPassword');
+        }}
+      />
+    );
+  }
+
+  if (currentScreen === 'resetPassword') {
+    return (
+      <ResetPasswordScreen
+        onBack={() => setCurrentScreen('verifyCode')}
+        onContinue={(newPassword) => {
+          setResetPasswordValue(newPassword);
+          setCurrentScreen('login');
+        }}
+      />
+    );
+  }
+
   return (
     <LoginScreen
       initialEmail={prefilledEmail}
       onNavigateToRegister={() => setCurrentScreen('register')}
+      onNavigateToForgotPassword={() => setCurrentScreen('forgotPassword')}
     />
   );
 }
