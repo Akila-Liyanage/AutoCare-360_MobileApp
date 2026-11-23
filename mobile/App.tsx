@@ -12,6 +12,19 @@ import { MOCK_VEHICLES, VehicleItem, VehiclesScreen } from './src/screens/Vehicl
 import { AddVehicleScreen } from './src/screens/AddVehicleScreen';
 import { VehicleDetailScreen } from './src/screens/VehicleDetailScreen';
 import { RecordsScreen } from './src/screens/RecordsScreen';
+import { MaintenanceHistoryScreen } from './src/screens/MaintenanceHistoryScreen';
+import { TransferVehicleRecordsScreen } from './src/screens/TransferVehicleRecordsScreen';
+import { ExpenseTrackingScreen } from './src/screens/ExpenseTrackingScreen';
+import { ItemizedExpenseLedgerScreen } from './src/screens/ItemizedExpenseLedgerScreen';
+import {
+  NotificationItem,
+  NotificationsScreen,
+  STATIC_NOTIFICATIONS,
+} from './src/screens/NotificationsScreen';
+import {
+  CreateNotificationScreen,
+  NotificationDraftData,
+} from './src/screens/CreateNotificationScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import {
   DEFAULT_OWNER_PROFILE,
@@ -28,6 +41,12 @@ type OwnerScreen =
   | 'addVehicle'
   | 'viewVehicle'
   | 'records'
+  | 'maintenanceHistory'
+  | 'transferVehicleRecords'
+  | 'expenseTracking'
+  | 'itemizedExpenseLedger'
+  | 'notifications'
+  | 'createNotification'
   | 'profile'
   | 'editProfile';
 
@@ -38,6 +57,8 @@ function MainNavigator() {
   const [ownerProfile, setOwnerProfile] = useState<OwnerProfileData>(DEFAULT_OWNER_PROFILE);
   const [vehicles, setVehicles] = useState<VehicleItem[]>(MOCK_VEHICLES);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleItem | null>(null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(STATIC_NOTIFICATIONS);
+  const [notificationDraft, setNotificationDraft] = useState<NotificationDraftData | null>(null);
   const [showLogout, setShowLogout] = useState<boolean>(false);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -93,6 +114,7 @@ function MainNavigator() {
             onVehiclesPress={() => setOwnerScreen('vehicles')}
             onRecordsPress={() => setOwnerScreen('records')}
             onProfilePress={() => setOwnerScreen('profile')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
           />
         );
       }
@@ -110,6 +132,7 @@ function MainNavigator() {
             onVehiclesPress={() => setOwnerScreen('vehicles')}
             onRecordsPress={() => setOwnerScreen('records')}
             onProfilePress={() => setOwnerScreen('profile')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
           />
         );
       }
@@ -123,7 +146,98 @@ function MainNavigator() {
             onHomePress={() => setOwnerScreen('home')}
             onRecordsPress={() => setOwnerScreen('records')}
             onProfilePress={() => setOwnerScreen('profile')}
-            onViewCompleteHistoryPress={() => setOwnerScreen('records')}
+            onViewCompleteHistoryPress={() => setOwnerScreen('maintenanceHistory')}
+            onTransferRecordsPress={() => setOwnerScreen('transferVehicleRecords')}
+            onExpenseTrackingPress={() => setOwnerScreen('expenseTracking')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'itemizedExpenseLedger') {
+        return (
+          <ItemizedExpenseLedgerScreen
+            onBack={() => setOwnerScreen('expenseTracking')}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onRecordsPress={() => setOwnerScreen('records')}
+            onProfilePress={() => setOwnerScreen('profile')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'expenseTracking') {
+        return (
+          <ExpenseTrackingScreen
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onRecordsPress={() => setOwnerScreen('records')}
+            onProfilePress={() => setOwnerScreen('profile')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+            onViewLedgerPress={() => setOwnerScreen('itemizedExpenseLedger')}
+          />
+        );
+      }
+      if (ownerScreen === 'transferVehicleRecords') {
+        const transferVehicle = selectedVehicle ?? vehicles[0] ?? MOCK_VEHICLES[0];
+        return (
+          <TransferVehicleRecordsScreen
+            vehicle={transferVehicle}
+            ownerProfile={ownerProfile}
+            backLabel={selectedVehicle ? 'Back to Vehicle' : 'Back to Records'}
+            onBack={() =>
+              setOwnerScreen(selectedVehicle ? 'viewVehicle' : 'records')
+            }
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onRecordsPress={() => setOwnerScreen('records')}
+            onProfilePress={() => setOwnerScreen('profile')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'maintenanceHistory') {
+        return (
+          <MaintenanceHistoryScreen
+            onBack={() => setOwnerScreen('records')}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onRecordsPress={() => setOwnerScreen('records')}
+            onProfilePress={() => setOwnerScreen('profile')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'createNotification') {
+        return (
+          <CreateNotificationScreen
+            initialDraft={notificationDraft}
+            onBack={() => setOwnerScreen('notifications')}
+            onCancel={() => setOwnerScreen('notifications')}
+            onSaveDraft={(draft) => {
+              setNotificationDraft(draft);
+              setOwnerScreen('notifications');
+            }}
+            onSave={(newNotification) => {
+              setNotifications((prev) => [newNotification, ...prev]);
+              setNotificationDraft(null);
+              setOwnerScreen('notifications');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onRecordsPress={() => setOwnerScreen('records')}
+            onProfilePress={() => setOwnerScreen('profile')}
+          />
+        );
+      }
+      if (ownerScreen === 'notifications') {
+        return (
+          <NotificationsScreen
+            notifications={notifications}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onRecordsPress={() => setOwnerScreen('records')}
+            onProfilePress={() => setOwnerScreen('profile')}
+            onSchedulePress={() => setOwnerScreen('createNotification')}
           />
         );
       }
@@ -133,6 +247,10 @@ function MainNavigator() {
             onHomePress={() => setOwnerScreen('home')}
             onVehiclesPress={() => setOwnerScreen('vehicles')}
             onProfilePress={() => setOwnerScreen('profile')}
+            onMaintenanceHistoryPress={() => setOwnerScreen('maintenanceHistory')}
+            onTransferRecordsPress={() => setOwnerScreen('transferVehicleRecords')}
+            onExpenseTrackingPress={() => setOwnerScreen('expenseTracking')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
           />
         );
       }
@@ -152,6 +270,7 @@ function MainNavigator() {
               setSelectedVehicle(vehicle);
               setOwnerScreen('viewVehicle');
             }}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
           />
         );
       }
@@ -168,6 +287,7 @@ function MainNavigator() {
                 setLogoutError(null);
                 setShowLogout(true);
               }}
+              onNotificationsPress={() => setOwnerScreen('notifications')}
             />
             <LogoutConfirmation
               visible={showLogout}
@@ -188,6 +308,7 @@ function MainNavigator() {
           onRecordsPress={() => setOwnerScreen('records')}
           onProfilePress={() => setOwnerScreen('profile')}
           onPressCreatePassport={() => setOwnerScreen('addVehicle')}
+          onPressNotifications={() => setOwnerScreen('notifications')}
         />
       );
     }

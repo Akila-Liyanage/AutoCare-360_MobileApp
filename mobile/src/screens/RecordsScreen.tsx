@@ -148,6 +148,9 @@ export type RecordsScreenProps = {
   onHomePress: () => void;
   onVehiclesPress: () => void;
   onProfilePress: () => void;
+  onMaintenanceHistoryPress?: () => void;
+  onTransferRecordsPress?: () => void;
+  onExpenseTrackingPress?: () => void;
   onNotificationsPress?: () => void;
   onMenuPress?: () => void;
 };
@@ -156,6 +159,9 @@ export const RecordsScreen: React.FC<RecordsScreenProps> = ({
   onHomePress,
   onVehiclesPress,
   onProfilePress,
+  onMaintenanceHistoryPress,
+  onTransferRecordsPress,
+  onExpenseTrackingPress,
   onNotificationsPress,
   onMenuPress,
 }) => {
@@ -229,10 +235,46 @@ export const RecordsScreen: React.FC<RecordsScreenProps> = ({
         {/* 2. PAGE INTRO */}
         <View style={styles.pageHeaderSection}>
           <Text style={styles.pageEyebrow}>VEHICLE RECORDS</Text>
-          <Text style={styles.pageTitle}>Records</Text>
+          <View style={styles.titleActionRow}>
+            <Text style={styles.pageTitle}>Records</Text>
+            <TouchableOpacity
+              style={styles.historyActionButton}
+              onPress={() => onMaintenanceHistoryPress?.()}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="time-outline" size={14} color="#ffffff" />
+              <Text style={styles.historyActionButtonText}>
+                View maintenance history
+              </Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.pageSubtitle}>
             View verified maintenance, service, inspection and digital passport history for your vehicles.
           </Text>
+
+          <View style={styles.secondaryActionsRow}>
+            <TouchableOpacity
+              style={styles.transferSecondaryButton}
+              onPress={() => onTransferRecordsPress?.()}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="swap-horizontal-outline" size={14} color="#0056A2" />
+              <Text style={styles.transferSecondaryButtonText}>
+                Transfer vehicle records
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.transferSecondaryButton}
+              onPress={() => onExpenseTrackingPress?.()}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="wallet-outline" size={14} color="#0056A2" />
+              <Text style={styles.transferSecondaryButtonText}>
+                Expense tracking
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* 3. SUMMARY CARDS (2x2 COMPACT GRID) */}
@@ -507,12 +549,55 @@ const styles = StyleSheet.create({
     color: '#0056A2',
     marginBottom: 4,
   },
+  titleActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 6,
+  },
   pageTitle: {
     fontSize: 24,
     fontWeight: '800',
     color: '#0f172a',
     letterSpacing: -0.2,
-    marginBottom: 6,
+  },
+  historyActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0056A2',
+    paddingHorizontal: 11,
+    height: 34,
+    borderRadius: 8,
+    gap: 5,
+  },
+  historyActionButtonText: {
+    color: '#ffffff',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  secondaryActionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+  },
+  transferSecondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ebf5ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingHorizontal: 11,
+    height: 32,
+    borderRadius: 8,
+    gap: 5,
+  },
+  transferSecondaryButtonText: {
+    color: '#0056A2',
+    fontSize: 11.5,
+    fontWeight: '700',
   },
   pageSubtitle: {
     fontSize: 12.5,

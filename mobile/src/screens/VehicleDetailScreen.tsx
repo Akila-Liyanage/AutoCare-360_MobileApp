@@ -22,6 +22,8 @@ export type VehicleDetailScreenProps = {
   onRecordsPress?: () => void;
   onProfilePress: () => void;
   onViewCompleteHistoryPress?: () => void;
+  onTransferRecordsPress?: () => void;
+  onExpenseTrackingPress?: () => void;
   onNotificationsPress?: () => void;
   onMenuPress?: () => void;
 };
@@ -77,6 +79,8 @@ export const VehicleDetailScreen: React.FC<VehicleDetailScreenProps> = ({
   onRecordsPress,
   onProfilePress,
   onViewCompleteHistoryPress,
+  onTransferRecordsPress,
+  onExpenseTrackingPress,
   onNotificationsPress,
   onMenuPress,
 }) => {
@@ -246,7 +250,11 @@ export const VehicleDetailScreen: React.FC<VehicleDetailScreenProps> = ({
             <Text style={styles.statusCardValueGreen}>Up to date</Text>
           </View>
 
-          <View style={styles.statusSummaryCard}>
+          <TouchableOpacity
+            style={styles.statusSummaryCard}
+            onPress={() => onExpenseTrackingPress?.()}
+            activeOpacity={0.8}
+          >
             <View style={styles.statusCardHeader}>
               <View style={styles.statusIconBlue}>
                 <Ionicons name="wallet-outline" size={16} color="#0056A2" />
@@ -254,7 +262,8 @@ export const VehicleDetailScreen: React.FC<VehicleDetailScreenProps> = ({
               <Text style={styles.statusCardLabel}>Lifetime service cost</Text>
             </View>
             <Text style={styles.statusCardValueBlue}>LKR 169,000</Text>
-          </View>
+            <Text style={styles.expenseLinkHint}>Expense tracking →</Text>
+          </TouchableOpacity>
         </View>
 
         {/* 5. OWNERSHIP & CRYPTOGRAPHIC INTEGRITY CARD */}
@@ -319,6 +328,19 @@ export const VehicleDetailScreen: React.FC<VehicleDetailScreenProps> = ({
             <Text style={styles.detailLabel}>Last integrity check</Text>
             <Text style={styles.inlineValue}>30 Sep 2026 · 09:40</Text>
           </View>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity
+            style={styles.transferRecordsButton}
+            onPress={() => onTransferRecordsPress?.()}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="swap-horizontal-outline" size={15} color="#0056A2" />
+            <Text style={styles.transferRecordsButtonText}>
+              Transfer vehicle records
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* 6. TRUST SCORE CARD */}
@@ -749,6 +771,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0056A2',
   },
+  expenseLinkHint: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#0056A2',
+    marginTop: 4,
+  },
   card: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
@@ -952,6 +980,23 @@ const styles = StyleSheet.create({
   },
   viewHistoryButtonText: {
     fontSize: 13,
+    fontWeight: '700',
+    color: '#0056A2',
+  },
+  transferRecordsButton: {
+    marginTop: 12,
+    height: 38,
+    backgroundColor: '#ebf5ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  transferRecordsButtonText: {
+    fontSize: 12.5,
     fontWeight: '700',
     color: '#0056A2',
   },
