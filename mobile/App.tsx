@@ -34,10 +34,26 @@ import {
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { GarageOverviewScreen } from './src/screens/GarageOverviewScreen';
 import {
+  DEFAULT_GARAGE_PROFILE,
+  GarageProfileData,
+  GarageProfileScreen,
+} from './src/screens/GarageProfileScreen';
+import {
   GARAGE_VEHICLE_RECORDS,
   GarageVehicleRecord,
   GarageVehicleRecordsScreen,
 } from './src/screens/GarageVehicleRecordsScreen';
+import { GarageVehiclePassportScreen } from './src/screens/GarageVehiclePassportScreen';
+import {
+  findGarageServiceRecordById,
+  GARAGE_SERVICE_RECORDS,
+  GarageServiceRecord,
+  GarageServiceRecordDetailScreen,
+} from './src/screens/GarageServiceRecordDetailScreen';
+import {
+  GarageOcrReviewScreen,
+  OcrReviewDraftData,
+} from './src/screens/GarageOcrReviewScreen';
 import {
   AddMaintenanceStep1Screen,
   MaintenanceStep1Data,
@@ -84,7 +100,11 @@ type OwnerScreen =
   | 'editProfile';
 type GarageScreen =
   | 'overview'
+  | 'garageProfile'
   | 'vehicleRecords'
+  | 'vehiclePassport'
+  | 'serviceRecordDetail'
+  | 'ocrReview'
   | 'maintenanceStep1'
   | 'maintenanceStep2'
   | 'maintenanceStep3'
@@ -97,8 +117,15 @@ function MainNavigator() {
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>('login');
   const [ownerScreen, setOwnerScreen] = useState<OwnerScreen>('home');
   const [garageScreen, setGarageScreen] = useState<GarageScreen>('overview');
+  const [garageProfile, setGarageProfile] = useState<GarageProfileData>(
+    DEFAULT_GARAGE_PROFILE
+  );
   const [selectedGarageVehicle, setSelectedGarageVehicle] =
     useState<GarageVehicleRecord | null>(null);
+  const [selectedGarageServiceRecord, setSelectedGarageServiceRecord] =
+    useState<GarageServiceRecord | null>(null);
+  const [ocrReviewDraft, setOcrReviewDraft] =
+    useState<OcrReviewDraftData | null>(null);
   const [maintenanceStep1Draft, setMaintenanceStep1Draft] =
     useState<MaintenanceStep1Data | null>(null);
   const [maintenanceStep2Draft, setMaintenanceStep2Draft] =
@@ -137,7 +164,10 @@ function MainNavigator() {
       setShowLogout(false);
       setOwnerScreen('home');
       setGarageScreen('overview');
+      setGarageProfile(DEFAULT_GARAGE_PROFILE);
       setSelectedGarageVehicle(null);
+      setSelectedGarageServiceRecord(null);
+      setOcrReviewDraft(null);
       setMaintenanceStep1Draft(null);
       setMaintenanceStep2Draft(null);
       setMaintenanceStep3Draft(null);
@@ -545,10 +575,130 @@ function MainNavigator() {
           />
         );
       }
+      if (garageScreen === 'garageProfile') {
+        return (
+          <GarageProfileScreen
+            profile={garageProfile}
+            onSaveProfile={(updated) => setGarageProfile(updated)}
+            onBackPress={() => setGarageScreen('overview')}
+            onViewVehicleRecordsPress={() => setGarageScreen('vehicleRecords')}
+            onAddServiceEntryPress={() => setGarageScreen('maintenanceStep1')}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
+      if (garageScreen === 'ocrReview') {
+        return (
+          <GarageOcrReviewScreen
+            initialDraft={ocrReviewDraft}
+            onBackPress={(draft) => {
+              setOcrReviewDraft(draft);
+              setGarageScreen('overview');
+            }}
+            onApprovePress={(draft) => setOcrReviewDraft(draft)}
+            onRejectPress={(draft) => setOcrReviewDraft(draft)}
+            onContinueToServiceRecordPress={(draft) => {
+              setOcrReviewDraft(draft);
+              const matchedVehicle =
+                GARAGE_VEHICLE_RECORDS.find(
+                  (v) =>
+                    v.registration.toLowerCase() ===
+                    draft.registration.trim().toLowerCase()
+                ) ?? null;
+              if (matchedVehicle) {
+                setSelectedGarageVehicle(matchedVehicle);
+              }
+              setGarageScreen('maintenanceStep1');
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen('ocrReview')}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
+      if (garageScreen === 'serviceRecordDetail') {
+        const matchGarageVehicle = (
+          record: GarageServiceRecord
+        ): GarageVehicleRecord =>
+          GARAGE_VEHICLE_RECORDS.find(
+            (v) =>
+              v.registration.toLowerCase() === record.registration.toLowerCase()
+          ) ??
+          GARAGE_VEHICLE_RECORDS.find(
+            (v) => v.model.toLowerCase() === record.vehicleModel.toLowerCase()
+          ) ??
+          GARAGE_VEHICLE_RECORDS[0];
+
+        return (
+          <GarageServiceRecordDetailScreen
+            record={selectedGarageServiceRecord ?? GARAGE_SERVICE_RECORDS[0]}
+            onBackPress={() => setGarageScreen('overview')}
+            onViewVehiclePassportPress={(record) => {
+              setSelectedGarageVehicle(matchGarageVehicle(record));
+              setGarageScreen('vehiclePassport');
+            }}
+            onAddAnotherRecordPress={(record) => {
+              const matchedVehicle = matchGarageVehicle(record);
+              if (
+                selectedGarageVehicle &&
+                matchedVehicle.id !== selectedGarageVehicle.id
+              ) {
+                setMaintenanceStep2Draft(null);
+                setMaintenanceStep3Draft(null);
+                setPreparedMaintenanceRecord(null);
+              }
+              setSelectedGarageVehicle(matchedVehicle);
+              setGarageScreen('maintenanceStep1');
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen('serviceRecordDetail')}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
+      if (garageScreen === 'vehiclePassport') {
+        return (
+          <GarageVehiclePassportScreen
+            vehicle={selectedGarageVehicle ?? GARAGE_VEHICLE_RECORDS[0]}
+            onBackPress={() => setGarageScreen('vehicleRecords')}
+            onAddServiceRecordPress={(vehicleId) => {
+              const foundVehicle =
+                GARAGE_VEHICLE_RECORDS.find((v) => v.id === vehicleId) ??
+                selectedGarageVehicle ??
+                GARAGE_VEHICLE_RECORDS[0];
+              if (
+                selectedGarageVehicle &&
+                foundVehicle.id !== selectedGarageVehicle.id
+              ) {
+                setMaintenanceStep2Draft(null);
+                setMaintenanceStep3Draft(null);
+                setPreparedMaintenanceRecord(null);
+              }
+              setSelectedGarageVehicle(foundVehicle);
+              setGarageScreen('maintenanceStep1');
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
       if (garageScreen === 'vehicleRecords') {
         return (
           <GarageVehicleRecordsScreen
             onBackPress={() => setGarageScreen('overview')}
+            onViewPassportPress={(vehicleId) => {
+              const foundVehicle =
+                GARAGE_VEHICLE_RECORDS.find((v) => v.id === vehicleId) ?? null;
+              setSelectedGarageVehicle(foundVehicle);
+              setGarageScreen('vehiclePassport');
+            }}
             onAddRecordPress={(vehicleId) => {
               const foundVehicle =
                 GARAGE_VEHICLE_RECORDS.find((v) => v.id === vehicleId) ?? null;
@@ -573,7 +723,15 @@ function MainNavigator() {
       }
       return (
         <GarageOverviewScreen
+          onViewProfilePress={() => setGarageScreen('garageProfile')}
           onAddServiceEntryPress={() => setGarageScreen('maintenanceStep1')}
+          onReviewScanPress={() => setGarageScreen('ocrReview')}
+          onViewServiceRecordPress={(entryId) => {
+            setSelectedGarageServiceRecord(
+              findGarageServiceRecordById(entryId)
+            );
+            setGarageScreen('serviceRecordDetail');
+          }}
           onVehicleRecordsPress={() => setGarageScreen('vehicleRecords')}
           onQuotationPress={() => setGarageScreen('quotation')}
           onInvoicePress={() => setGarageScreen('invoiceStep1')}
