@@ -12,7 +12,6 @@ import {
   Image,
   Dimensions,
   SafeAreaView,
-  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +23,7 @@ const { width } = Dimensions.get('window');
 
 interface LoginScreenProps {
   onNavigateToRegister: () => void;
+  onNavigateToForgotPassword: () => void;
   initialEmail?: string;
 }
 
@@ -41,6 +41,7 @@ const ROLE_BUTTON_LABELS: Record<AuthRole, string> = {
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   onNavigateToRegister,
+  onNavigateToForgotPassword,
   initialEmail,
 }) => {
   const { login, error, clearError, isLoading } = useAuth();
@@ -96,11 +97,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   const handleForgotPassword = () => {
-    Alert.alert(
-      'Password Recovery',
-      `A password reset link or verification code can be sent to ${email || 'your email'}. Please check your inbox or visit the AutoCare 360 web portal.`,
-      [{ text: 'OK' }]
-    );
+    onNavigateToForgotPassword();
   };
 
   const displayError = localError || error;
