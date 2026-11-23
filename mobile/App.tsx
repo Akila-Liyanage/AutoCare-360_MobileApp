@@ -32,6 +32,39 @@ import {
   OwnerProfileData,
 } from './src/screens/EditProfileScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { GarageOverviewScreen } from './src/screens/GarageOverviewScreen';
+import {
+  GARAGE_VEHICLE_RECORDS,
+  GarageVehicleRecord,
+  GarageVehicleRecordsScreen,
+} from './src/screens/GarageVehicleRecordsScreen';
+import {
+  AddMaintenanceStep1Screen,
+  MaintenanceStep1Data,
+} from './src/screens/AddMaintenanceStep1Screen';
+import {
+  AddMaintenanceStep2Screen,
+  MaintenanceStep2Data,
+} from './src/screens/AddMaintenanceStep2Screen';
+import {
+  AddMaintenanceStep3Screen,
+  MaintenanceStep3Data,
+  PreparedMaintenanceRecord,
+} from './src/screens/AddMaintenanceStep3Screen';
+import {
+  GenerateQuotationScreen,
+  PreparedQuotation,
+  QuotationFormData,
+} from './src/screens/GenerateQuotationScreen';
+import {
+  GenerateInvoiceStep1Screen,
+  InvoiceStep1Data,
+} from './src/screens/GenerateInvoiceStep1Screen';
+import {
+  GenerateInvoiceStep2Screen,
+  InvoiceStep2Data,
+  PreparedInvoice,
+} from './src/screens/GenerateInvoiceStep2Screen';
 import { LogoutConfirmation } from './src/components/LogoutConfirmation';
 
 type AuthScreen = 'login' | 'register' | 'forgotPassword' | 'verifyCode' | 'resetPassword';
@@ -49,11 +82,40 @@ type OwnerScreen =
   | 'createNotification'
   | 'profile'
   | 'editProfile';
+type GarageScreen =
+  | 'overview'
+  | 'vehicleRecords'
+  | 'maintenanceStep1'
+  | 'maintenanceStep2'
+  | 'maintenanceStep3'
+  | 'quotation'
+  | 'invoiceStep1'
+  | 'invoiceStep2';
 
 function MainNavigator() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>('login');
   const [ownerScreen, setOwnerScreen] = useState<OwnerScreen>('home');
+  const [garageScreen, setGarageScreen] = useState<GarageScreen>('overview');
+  const [selectedGarageVehicle, setSelectedGarageVehicle] =
+    useState<GarageVehicleRecord | null>(null);
+  const [maintenanceStep1Draft, setMaintenanceStep1Draft] =
+    useState<MaintenanceStep1Data | null>(null);
+  const [maintenanceStep2Draft, setMaintenanceStep2Draft] =
+    useState<MaintenanceStep2Data | null>(null);
+  const [maintenanceStep3Draft, setMaintenanceStep3Draft] =
+    useState<MaintenanceStep3Data | null>(null);
+  const [, setPreparedMaintenanceRecord] =
+    useState<PreparedMaintenanceRecord | null>(null);
+  const [quotationDraft, setQuotationDraft] =
+    useState<QuotationFormData | null>(null);
+  const [preparedQuotation, setPreparedQuotation] =
+    useState<PreparedQuotation | null>(null);
+  const [invoiceStep1Draft, setInvoiceStep1Draft] =
+    useState<InvoiceStep1Data | null>(null);
+  const [invoiceStep2Draft, setInvoiceStep2Draft] =
+    useState<InvoiceStep2Data | null>(null);
+  const [, setPreparedInvoice] = useState<PreparedInvoice | null>(null);
   const [ownerProfile, setOwnerProfile] = useState<OwnerProfileData>(DEFAULT_OWNER_PROFILE);
   const [vehicles, setVehicles] = useState<VehicleItem[]>(MOCK_VEHICLES);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleItem | null>(null);
@@ -74,6 +136,17 @@ function MainNavigator() {
       await logout();
       setShowLogout(false);
       setOwnerScreen('home');
+      setGarageScreen('overview');
+      setSelectedGarageVehicle(null);
+      setMaintenanceStep1Draft(null);
+      setMaintenanceStep2Draft(null);
+      setMaintenanceStep3Draft(null);
+      setPreparedMaintenanceRecord(null);
+      setQuotationDraft(null);
+      setPreparedQuotation(null);
+      setInvoiceStep1Draft(null);
+      setInvoiceStep2Draft(null);
+      setPreparedInvoice(null);
       setCurrentScreen('login');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unable to log out. Please try again.';
@@ -309,6 +382,205 @@ function MainNavigator() {
           onProfilePress={() => setOwnerScreen('profile')}
           onPressCreatePassport={() => setOwnerScreen('addVehicle')}
           onPressNotifications={() => setOwnerScreen('notifications')}
+        />
+      );
+    }
+    if (role === 'garage') {
+      const currentMaintenanceRoute: GarageScreen = maintenanceStep3Draft
+        ? 'maintenanceStep3'
+        : maintenanceStep2Draft
+        ? 'maintenanceStep2'
+        : 'maintenanceStep1';
+
+      if (garageScreen === 'invoiceStep2') {
+        const activeQuotationCode =
+          preparedQuotation?.quotationNumber ||
+          quotationDraft?.quotationNumber ||
+          'QT-2026-091';
+        return (
+          <GenerateInvoiceStep2Screen
+            step1Data={invoiceStep1Draft}
+            initialDraft={invoiceStep2Draft}
+            linkedQuotationCode={activeQuotationCode}
+            onBackPress={(draft) => {
+              setInvoiceStep2Draft(draft);
+              setGarageScreen('invoiceStep1');
+            }}
+            onSaveDraftPress={(draft) => setInvoiceStep2Draft(draft)}
+            onPrepareInvoicePress={(invoice) => {
+              setInvoiceStep2Draft(invoice.step2);
+              setPreparedInvoice(invoice);
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
+            onBillingPress={() => setGarageScreen('invoiceStep2')}
+          />
+        );
+      }
+      if (garageScreen === 'invoiceStep1') {
+        return (
+          <GenerateInvoiceStep1Screen
+            selectedVehicle={selectedGarageVehicle}
+            initialDraft={invoiceStep1Draft}
+            linkedQuotation={preparedQuotation ?? quotationDraft}
+            onBackPress={(draft) => {
+              setInvoiceStep1Draft(draft);
+              setGarageScreen('overview');
+            }}
+            onSaveDraftPress={(draft) => setInvoiceStep1Draft(draft)}
+            onContinuePress={(data) => {
+              setInvoiceStep1Draft(data);
+              setGarageScreen('invoiceStep2');
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
+            onBillingPress={() => setGarageScreen('invoiceStep1')}
+          />
+        );
+      }
+      if (garageScreen === 'quotation') {
+        return (
+          <GenerateQuotationScreen
+            selectedVehicle={selectedGarageVehicle}
+            initialDraft={quotationDraft}
+            onBackPress={(draft) => {
+              setQuotationDraft(draft);
+              setGarageScreen('overview');
+            }}
+            onSaveDraftPress={(draft) => setQuotationDraft(draft)}
+            onGenerateQuotationPress={(prepared) => {
+              setQuotationDraft(prepared);
+              setPreparedQuotation(prepared);
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
+      if (garageScreen === 'maintenanceStep3') {
+        const step3VehicleLabel =
+          maintenanceStep1Draft?.vehicleLabel ||
+          (selectedGarageVehicle
+            ? `${selectedGarageVehicle.registration} · ${selectedGarageVehicle.model}`
+            : 'WP ABC-1234 · Toyota Aqua');
+        return (
+          <AddMaintenanceStep3Screen
+            step1Data={maintenanceStep1Draft}
+            step2Data={maintenanceStep2Draft}
+            initialDraft={maintenanceStep3Draft}
+            vehicleLabel={step3VehicleLabel}
+            onBackPress={(currentDraft) => {
+              setMaintenanceStep3Draft(currentDraft);
+              setGarageScreen('maintenanceStep2');
+            }}
+            onSaveDraftPress={(draft) => setMaintenanceStep3Draft(draft)}
+            onPrepareRecordPress={(record) => {
+              setMaintenanceStep3Draft(record.step3);
+              setPreparedMaintenanceRecord(record);
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen('maintenanceStep3')}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
+      if (garageScreen === 'maintenanceStep2') {
+        const step2VehicleLabel =
+          maintenanceStep1Draft?.vehicleLabel ||
+          (selectedGarageVehicle
+            ? `${selectedGarageVehicle.registration} · ${selectedGarageVehicle.model}`
+            : 'WP ABC-1234 · Toyota Aqua');
+        return (
+          <AddMaintenanceStep2Screen
+            vehicleLabel={step2VehicleLabel}
+            initialDraft={maintenanceStep2Draft}
+            onBackPress={(currentDraft) => {
+              setMaintenanceStep2Draft(currentDraft);
+              setGarageScreen('maintenanceStep1');
+            }}
+            onSaveDraftPress={(draft) => setMaintenanceStep2Draft(draft)}
+            onContinuePress={(data) => {
+              setMaintenanceStep2Draft(data);
+              setGarageScreen('maintenanceStep3');
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen('maintenanceStep2')}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
+      if (garageScreen === 'maintenanceStep1') {
+        const syncSelectedVehicle = (data: MaintenanceStep1Data) => {
+          const matched = GARAGE_VEHICLE_RECORDS.find(
+            (v) => v.id === data.vehicleId
+          );
+          if (matched) {
+            setSelectedGarageVehicle(matched);
+          }
+        };
+        return (
+          <AddMaintenanceStep1Screen
+            selectedVehicle={selectedGarageVehicle}
+            initialDraft={maintenanceStep1Draft}
+            onBackPress={() => setGarageScreen('vehicleRecords')}
+            onSaveDraftPress={(draft) => {
+              syncSelectedVehicle(draft);
+              setMaintenanceStep1Draft(draft);
+            }}
+            onContinuePress={(data) => {
+              syncSelectedVehicle(data);
+              setMaintenanceStep1Draft(data);
+              setGarageScreen('maintenanceStep2');
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen('maintenanceStep1')}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
+      if (garageScreen === 'vehicleRecords') {
+        return (
+          <GarageVehicleRecordsScreen
+            onBackPress={() => setGarageScreen('overview')}
+            onAddRecordPress={(vehicleId) => {
+              const foundVehicle =
+                GARAGE_VEHICLE_RECORDS.find((v) => v.id === vehicleId) ?? null;
+              if (
+                foundVehicle &&
+                selectedGarageVehicle &&
+                foundVehicle.id !== selectedGarageVehicle.id
+              ) {
+                setMaintenanceStep2Draft(null);
+                setMaintenanceStep3Draft(null);
+                setPreparedMaintenanceRecord(null);
+              }
+              setSelectedGarageVehicle(foundVehicle);
+              setGarageScreen('maintenanceStep1');
+            }}
+            onGaragePress={() => setGarageScreen('overview')}
+            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+            onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
+            onBillingPress={() => setGarageScreen('quotation')}
+          />
+        );
+      }
+      return (
+        <GarageOverviewScreen
+          onAddServiceEntryPress={() => setGarageScreen('maintenanceStep1')}
+          onVehicleRecordsPress={() => setGarageScreen('vehicleRecords')}
+          onQuotationPress={() => setGarageScreen('quotation')}
+          onInvoicePress={() => setGarageScreen('invoiceStep1')}
+          onGaragePress={() => setGarageScreen('overview')}
+          onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+          onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
+          onBillingPress={() => setGarageScreen('quotation')}
         />
       );
     }
