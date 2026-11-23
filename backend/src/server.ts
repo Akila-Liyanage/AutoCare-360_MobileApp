@@ -5,7 +5,7 @@ import { connectDatabase, disconnectDatabase } from './config/database.js';
 const startServer = async (): Promise<void> => {
   await connectDatabase();
 
-  const server = app.listen(ENV.PORT, () => {
+  const server = app.listen(ENV.PORT, '0.0.0.0', () => {
     console.log(`===============================================`);
     console.log(` AutoCare 360 Backend Server Running`);
     console.log(` Environment : ${ENV.NODE_ENV}`);

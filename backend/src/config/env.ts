@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-dotenv.config();
+const envPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.env');
+dotenv.config({ path: envPath });
 
 export const ENV = {
   PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : 5000,

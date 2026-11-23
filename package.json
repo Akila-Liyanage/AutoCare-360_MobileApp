@@ -8,6 +8,7 @@
     "backend"
   ],
   "scripts": {
+    "start": "npm run start --prefix mobile",
     "dev:backend": "npm run dev --prefix backend",
     "build:backend": "npm run build --prefix backend",
     "start:backend": "npm run start --prefix backend",
