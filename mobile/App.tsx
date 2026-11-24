@@ -16,6 +16,45 @@ import { MaintenanceHistoryScreen } from './src/screens/MaintenanceHistoryScreen
 import { TransferVehicleRecordsScreen } from './src/screens/TransferVehicleRecordsScreen';
 import { ExpenseTrackingScreen } from './src/screens/ExpenseTrackingScreen';
 import { ItemizedExpenseLedgerScreen } from './src/screens/ItemizedExpenseLedgerScreen';
+import { SecureSharingHubScreen } from './src/screens/SecureSharingHubScreen';
+import {
+  SecureLinkRecipientScreen,
+  SecureLinkStep1Data,
+} from './src/screens/SecureLinkRecipientScreen';
+import {
+  SecureLinkProtectionScreen,
+  SecureLinkStep2Data,
+} from './src/screens/SecureLinkProtectionScreen';
+import { SecureLinkReadyScreen } from './src/screens/SecureLinkReadyScreen';
+import {
+  QrConfigData,
+  QrConfigureScreen,
+} from './src/screens/QrConfigureScreen';
+import { QrReadyScreen } from './src/screens/QrReadyScreen';
+import {
+  AccessLevelScreen,
+  AccessLevelStep1Data,
+} from './src/screens/AccessLevelScreen';
+import {
+  SelectedRecordsScreen,
+  SelectedRecordsStep2Data,
+} from './src/screens/SelectedRecordsScreen';
+import { ReviewPermissionScreen } from './src/screens/ReviewPermissionScreen';
+import { AccessGrantedScreen } from './src/screens/AccessGrantedScreen';
+import { ProtectedSharingOverviewScreen } from './src/screens/ProtectedSharingOverviewScreen';
+import {
+  ProtectedViewingSetupScreen,
+  ProtectedViewingStep1Data,
+} from './src/screens/ProtectedViewingSetupScreen';
+import {
+  DataVisibilityScreen,
+  ProtectedViewingStep2Data,
+} from './src/screens/DataVisibilityScreen';
+import { ProtectedPassportViewerScreen } from './src/screens/ProtectedPassportViewerScreen';
+import { ProtectedAccessReadyScreen } from './src/screens/ProtectedAccessReadyScreen';
+import { AIHealthPassportScreen } from './src/screens/AIHealthPassportScreen';
+import { HealthMetricsScreen } from './src/screens/HealthMetricsScreen';
+import { MaintenanceForecastScreen } from './src/screens/MaintenanceForecastScreen';
 import {
   NotificationItem,
   NotificationsScreen,
@@ -89,6 +128,24 @@ type OwnerScreen =
   | 'vehicles'
   | 'addVehicle'
   | 'viewVehicle'
+  | 'sharingHub'
+  | 'secureLinkRecipient'
+  | 'secureLinkProtection'
+  | 'secureLinkReady'
+  | 'qrConfigure'
+  | 'qrReady'
+  | 'accessLevel'
+  | 'selectedRecords'
+  | 'reviewPermission'
+  | 'accessGranted'
+  | 'protectedSharingOverview'
+  | 'protectedViewingSetup'
+  | 'dataVisibility'
+  | 'protectedPassportViewer'
+  | 'protectedAccessReady'
+  | 'healthPassport'
+  | 'healthMetrics'
+  | 'maintenanceForecast'
   | 'records'
   | 'maintenanceHistory'
   | 'transferVehicleRecords'
@@ -148,6 +205,23 @@ function MainNavigator() {
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleItem | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>(STATIC_NOTIFICATIONS);
   const [notificationDraft, setNotificationDraft] = useState<NotificationDraftData | null>(null);
+  const [secureLinkStep1Draft, setSecureLinkStep1Draft] =
+    useState<SecureLinkStep1Data | null>(null);
+  const [secureLinkStep2Draft, setSecureLinkStep2Draft] =
+    useState<SecureLinkStep2Data | null>(null);
+  const [qrConfigDraft, setQrConfigDraft] = useState<QrConfigData | null>(null);
+  const [accessLevelStep1Draft, setAccessLevelStep1Draft] =
+    useState<AccessLevelStep1Data | null>(null);
+  const [selectedRecordsStep2Draft, setSelectedRecordsStep2Draft] =
+    useState<SelectedRecordsStep2Data | null>(null);
+  const [, setAccessPermissionPreparedLocally] = useState<boolean>(false);
+  const [protectedViewingStep1Draft, setProtectedViewingStep1Draft] =
+    useState<ProtectedViewingStep1Data | null>(null);
+  const [protectedViewingStep2Draft, setProtectedViewingStep2Draft] =
+    useState<ProtectedViewingStep2Data | null>(null);
+  const [, setProtectedViewingPreparedLocally] = useState<boolean>(false);
+  const [maintenanceForecastOrigin, setMaintenanceForecastOrigin] =
+    useState<'healthPassport' | 'healthMetrics'>('healthPassport');
   const [showLogout, setShowLogout] = useState<boolean>(false);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -163,6 +237,16 @@ function MainNavigator() {
       await logout();
       setShowLogout(false);
       setOwnerScreen('home');
+      setSecureLinkStep1Draft(null);
+      setSecureLinkStep2Draft(null);
+      setQrConfigDraft(null);
+      setAccessLevelStep1Draft(null);
+      setSelectedRecordsStep2Draft(null);
+      setAccessPermissionPreparedLocally(false);
+      setProtectedViewingStep1Draft(null);
+      setProtectedViewingStep2Draft(null);
+      setProtectedViewingPreparedLocally(false);
+      setMaintenanceForecastOrigin('healthPassport');
       setGarageScreen('overview');
       setGarageProfile(DEFAULT_GARAGE_PROFILE);
       setSelectedGarageVehicle(null);
@@ -239,6 +323,346 @@ function MainNavigator() {
           />
         );
       }
+      if (ownerScreen === 'maintenanceForecast') {
+        return (
+          <MaintenanceForecastScreen
+            selectedVehicle={selectedVehicle}
+            onBackPress={() => setOwnerScreen(maintenanceForecastOrigin)}
+            onHealthPassportPress={() => setOwnerScreen('healthPassport')}
+            onHealthMetricsPress={() => setOwnerScreen('healthMetrics')}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'healthMetrics') {
+        return (
+          <HealthMetricsScreen
+            selectedVehicle={selectedVehicle}
+            onBackPress={() => setOwnerScreen('healthPassport')}
+            onMaintenanceForecastPress={() => {
+              setMaintenanceForecastOrigin('healthMetrics');
+              setOwnerScreen('maintenanceForecast');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'healthPassport') {
+        return (
+          <AIHealthPassportScreen
+            selectedVehicle={selectedVehicle}
+            vehicles={vehicles}
+            onHealthMetricsPress={() => setOwnerScreen('healthMetrics')}
+            onMaintenanceForecastPress={() => {
+              setMaintenanceForecastOrigin('healthPassport');
+              setOwnerScreen('maintenanceForecast');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'protectedAccessReady') {
+        return (
+          <ProtectedAccessReadyScreen
+            step1Data={protectedViewingStep1Draft}
+            step2Data={protectedViewingStep2Draft}
+            onBackPress={() => setOwnerScreen('protectedPassportViewer')}
+            onDonePress={() => setOwnerScreen('protectedSharingOverview')}
+            onViewPassportPress={() => setOwnerScreen('protectedPassportViewer')}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'protectedPassportViewer') {
+        return (
+          <ProtectedPassportViewerScreen
+            step1Data={protectedViewingStep1Draft}
+            step2Data={protectedViewingStep2Draft}
+            onBackPress={() => setOwnerScreen('dataVisibility')}
+            onEditVisibilityPress={() => setOwnerScreen('dataVisibility')}
+            onContinuePress={() => {
+              setProtectedViewingPreparedLocally(true);
+              setOwnerScreen('protectedAccessReady');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'dataVisibility') {
+        return (
+          <DataVisibilityScreen
+            step1Data={protectedViewingStep1Draft}
+            initialDraft={protectedViewingStep2Draft}
+            onBackPress={(draft) => {
+              setProtectedViewingStep2Draft(draft);
+              setOwnerScreen('protectedViewingSetup');
+            }}
+            onSaveDraftPress={(draft) => setProtectedViewingStep2Draft(draft)}
+            onContinuePress={(data) => {
+              setProtectedViewingStep2Draft(data);
+              setOwnerScreen('protectedPassportViewer');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'protectedViewingSetup') {
+        return (
+          <ProtectedViewingSetupScreen
+            selectedVehicle={selectedVehicle}
+            vehicles={vehicles}
+            initialDraft={protectedViewingStep1Draft}
+            onBackPress={(draft) => {
+              setProtectedViewingStep1Draft(draft);
+              setOwnerScreen('protectedSharingOverview');
+            }}
+            onSaveDraftPress={(draft) => setProtectedViewingStep1Draft(draft)}
+            onContinuePress={(data) => {
+              setProtectedViewingStep1Draft(data);
+              setOwnerScreen('dataVisibility');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'protectedSharingOverview') {
+        return (
+          <ProtectedSharingOverviewScreen
+            onBackPress={() => setOwnerScreen('sharingHub')}
+            onViewSharingHubPress={() => setOwnerScreen('sharingHub')}
+            onSetupProtectedViewingPress={() =>
+              setOwnerScreen('protectedViewingSetup')
+            }
+            onActiveProtectedAccessPress={() => {}}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'accessGranted') {
+        return (
+          <AccessGrantedScreen
+            step1Data={accessLevelStep1Draft}
+            step2Data={selectedRecordsStep2Draft}
+            onBackPress={() => setOwnerScreen('reviewPermission')}
+            onDonePress={() => setOwnerScreen('sharingHub')}
+            onViewDetailsPress={() => setOwnerScreen('reviewPermission')}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'reviewPermission') {
+        return (
+          <ReviewPermissionScreen
+            step1Data={accessLevelStep1Draft}
+            step2Data={selectedRecordsStep2Draft}
+            onBackPress={() => setOwnerScreen('selectedRecords')}
+            onEditAccessLevelPress={() => setOwnerScreen('accessLevel')}
+            onEditSelectedRecordsPress={() => setOwnerScreen('selectedRecords')}
+            onGrantAccessPress={() => {
+              setAccessPermissionPreparedLocally(true);
+              setOwnerScreen('accessGranted');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'selectedRecords') {
+        return (
+          <SelectedRecordsScreen
+            step1Data={accessLevelStep1Draft}
+            initialDraft={selectedRecordsStep2Draft}
+            onBackPress={(draft) => {
+              setSelectedRecordsStep2Draft(draft);
+              setOwnerScreen('accessLevel');
+            }}
+            onSaveDraftPress={(draft) => setSelectedRecordsStep2Draft(draft)}
+            onContinuePress={(data) => {
+              setSelectedRecordsStep2Draft(data);
+              setOwnerScreen('reviewPermission');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'accessLevel') {
+        return (
+          <AccessLevelScreen
+            selectedVehicle={selectedVehicle}
+            vehicles={vehicles}
+            initialDraft={accessLevelStep1Draft}
+            onBackPress={(draft) => {
+              setAccessLevelStep1Draft(draft);
+              setOwnerScreen('sharingHub');
+            }}
+            onSaveDraftPress={(draft) => setAccessLevelStep1Draft(draft)}
+            onContinuePress={(data) => {
+              setAccessLevelStep1Draft(data);
+              setOwnerScreen('selectedRecords');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'qrReady') {
+        return (
+          <QrReadyScreen
+            qrConfig={qrConfigDraft}
+            onBackPress={() => setOwnerScreen('qrConfigure')}
+            onDonePress={() => setOwnerScreen('sharingHub')}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'qrConfigure') {
+        return (
+          <QrConfigureScreen
+            selectedVehicle={selectedVehicle}
+            vehicles={vehicles}
+            initialDraft={qrConfigDraft}
+            onBackPress={(draft) => {
+              setQrConfigDraft(draft);
+              setOwnerScreen('sharingHub');
+            }}
+            onSaveDraftPress={(draft) => setQrConfigDraft(draft)}
+            onContinuePress={(data) => {
+              setQrConfigDraft(data);
+              setOwnerScreen('qrReady');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'secureLinkReady') {
+        return (
+          <SecureLinkReadyScreen
+            step1Data={secureLinkStep1Draft}
+            step2Data={secureLinkStep2Draft}
+            onBackPress={() => setOwnerScreen('secureLinkProtection')}
+            onDonePress={() => setOwnerScreen('sharingHub')}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'secureLinkProtection') {
+        return (
+          <SecureLinkProtectionScreen
+            initialDraft={secureLinkStep2Draft}
+            onBackPress={(draft) => {
+              setSecureLinkStep2Draft(draft);
+              setOwnerScreen('secureLinkRecipient');
+            }}
+            onSaveDraftPress={(draft) => setSecureLinkStep2Draft(draft)}
+            onContinuePress={(data) => {
+              setSecureLinkStep2Draft(data);
+              setOwnerScreen('secureLinkReady');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'secureLinkRecipient') {
+        return (
+          <SecureLinkRecipientScreen
+            selectedVehicle={selectedVehicle}
+            vehicles={vehicles}
+            initialDraft={secureLinkStep1Draft}
+            onBackPress={(draft) => {
+              setSecureLinkStep1Draft(draft);
+              setOwnerScreen('sharingHub');
+            }}
+            onSaveDraftPress={(draft) => setSecureLinkStep1Draft(draft)}
+            onContinuePress={(data) => {
+              setSecureLinkStep1Draft(data);
+              setOwnerScreen('secureLinkProtection');
+            }}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
+      if (ownerScreen === 'sharingHub') {
+        return (
+          <SecureSharingHubScreen
+            onBackPress={() => setOwnerScreen('viewVehicle')}
+            onCreateLinkPress={() => setOwnerScreen('secureLinkRecipient')}
+            onCreateQrPress={() => setOwnerScreen('qrConfigure')}
+            onManageAccessPress={() => setOwnerScreen('accessLevel')}
+            onProtectedSharingPress={() => setOwnerScreen('protectedSharingOverview')}
+            onHomePress={() => setOwnerScreen('home')}
+            onVehiclesPress={() => setOwnerScreen('vehicles')}
+            onSharingPress={() => setOwnerScreen('sharingHub')}
+            onHealthPress={() => setOwnerScreen('healthPassport')}
+            onNotificationsPress={() => setOwnerScreen('notifications')}
+          />
+        );
+      }
       if (ownerScreen === 'viewVehicle') {
         const activeVehicle = selectedVehicle ?? vehicles[0] ?? MOCK_VEHICLES[0];
         return (
@@ -252,6 +676,7 @@ function MainNavigator() {
             onViewCompleteHistoryPress={() => setOwnerScreen('maintenanceHistory')}
             onTransferRecordsPress={() => setOwnerScreen('transferVehicleRecords')}
             onExpenseTrackingPress={() => setOwnerScreen('expenseTracking')}
+            onSecureSharingPress={() => setOwnerScreen('sharingHub')}
             onNotificationsPress={() => setOwnerScreen('notifications')}
           />
         );
@@ -577,17 +1002,33 @@ function MainNavigator() {
       }
       if (garageScreen === 'garageProfile') {
         return (
-          <GarageProfileScreen
-            profile={garageProfile}
-            onSaveProfile={(updated) => setGarageProfile(updated)}
-            onBackPress={() => setGarageScreen('overview')}
-            onViewVehicleRecordsPress={() => setGarageScreen('vehicleRecords')}
-            onAddServiceEntryPress={() => setGarageScreen('maintenanceStep1')}
-            onGaragePress={() => setGarageScreen('overview')}
-            onVehiclesPress={() => setGarageScreen('vehicleRecords')}
-            onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
-            onBillingPress={() => setGarageScreen('quotation')}
-          />
+          <>
+            <GarageProfileScreen
+              profile={garageProfile}
+              onSaveProfile={(updated) => setGarageProfile(updated)}
+              onBackPress={() => setGarageScreen('overview')}
+              onViewVehicleRecordsPress={() => setGarageScreen('vehicleRecords')}
+              onAddServiceEntryPress={() => setGarageScreen('maintenanceStep1')}
+              onLogoutPress={() => {
+                setLogoutError(null);
+                setShowLogout(true);
+              }}
+              onGaragePress={() => setGarageScreen('overview')}
+              onVehiclesPress={() => setGarageScreen('vehicleRecords')}
+              onJobsPress={() => setGarageScreen(currentMaintenanceRoute)}
+              onBillingPress={() => setGarageScreen('quotation')}
+            />
+            <LogoutConfirmation
+              visible={showLogout}
+              isLoggingOut={isLoggingOut}
+              error={logoutError}
+              onCancel={() => {
+                setLogoutError(null);
+                setShowLogout(false);
+              }}
+              onConfirm={handleConfirmLogout}
+            />
+          </>
         );
       }
       if (garageScreen === 'ocrReview') {

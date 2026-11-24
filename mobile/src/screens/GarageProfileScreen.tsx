@@ -38,6 +38,7 @@ export interface GarageProfileScreenProps {
   onMenuPress?: () => void;
   onViewVehicleRecordsPress?: () => void;
   onAddServiceEntryPress?: () => void;
+  onLogoutPress?: () => void;
   onGaragePress?: () => void;
   onVehiclesPress?: () => void;
   onJobsPress?: () => void;
@@ -136,6 +137,7 @@ export const GarageProfileScreen: React.FC<GarageProfileScreenProps> = ({
   onMenuPress,
   onViewVehicleRecordsPress,
   onAddServiceEntryPress,
+  onLogoutPress,
   onGaragePress,
   onVehiclesPress,
   onJobsPress,
@@ -681,6 +683,16 @@ export const GarageProfileScreen: React.FC<GarageProfileScreenProps> = ({
             <Text style={styles.primaryActionButtonText}>
               Add service entry
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={() => onLogoutPress?.()}
+            activeOpacity={0.85}
+            accessibilityLabel="Logout"
+          >
+            <Ionicons name="log-out-outline" size={17} color="#dc2626" />
+            <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -1255,6 +1267,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  logoutButton: {
+    height: 46,
+    backgroundColor: '#fef2f2',
+    borderWidth: 1.2,
+    borderColor: '#dc2626',
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    marginTop: 4,
+  },
+  logoutButtonText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#dc2626',
   },
   bottomTabBar: {
     height: 56,
