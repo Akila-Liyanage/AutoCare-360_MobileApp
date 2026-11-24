@@ -24,6 +24,7 @@ export type VehicleDetailScreenProps = {
   onViewCompleteHistoryPress?: () => void;
   onTransferRecordsPress?: () => void;
   onExpenseTrackingPress?: () => void;
+  onSecureSharingPress?: () => void;
   onNotificationsPress?: () => void;
   onMenuPress?: () => void;
 };
@@ -81,6 +82,7 @@ export const VehicleDetailScreen: React.FC<VehicleDetailScreenProps> = ({
   onViewCompleteHistoryPress,
   onTransferRecordsPress,
   onExpenseTrackingPress,
+  onSecureSharingPress,
   onNotificationsPress,
   onMenuPress,
 }) => {
@@ -340,6 +342,15 @@ export const VehicleDetailScreen: React.FC<VehicleDetailScreenProps> = ({
             <Text style={styles.transferRecordsButtonText}>
               Transfer vehicle records
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.transferRecordsButton, { marginTop: 8 }]}
+            onPress={() => onSecureSharingPress?.()}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="share-social-outline" size={15} color="#0056A2" />
+            <Text style={styles.transferRecordsButtonText}>Secure sharing</Text>
           </TouchableOpacity>
         </View>
 
